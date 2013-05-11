@@ -270,3 +270,82 @@ if SqlPatches.module_exists?('ActiveRecord') && !SqlPatches.patched?
     end
   end
 end
+
+if SqlPatches.class_exists?('SPARQL::Client') && !SqlPatches.patched?
+  class SPARQL::Client
+#    alias_method :response_without_profiling, :response
+#    def response_with_profiling(client, request_context)
+#      current = ::Rack::MiniProfiler.current
+#      return response_without_profiling(client, request_context) unless current && current.measure
+#
+#      start = Time.now
+#
+#      result = nil
+#      Rack::MiniProfiler.counter("sparql") do
+#        result = response_without_profiling(client, request_context)
+#      end
+#      elapsed_time = ((Time.now - start).to_f * 1000).round(1)
+#      return result
+#    end
+#    alias_method :response, :response_with_profiling
+#    puts "SPARQL::Client.response instrumented for profiling"
+#
+#    alias_method :parse_response_without_profiling, :parse_response
+#    def parse_response_with_profiling(data, options)
+#      current = ::Rack::MiniProfiler.current
+#      return parse_response_without_profiling(data, options) unless current && current.measure
+#
+#      start = Time.now
+#
+#      result = nil
+#      Rack::MiniProfiler.counter("parse") do
+#        result = parse_response_without_profiling(data, options)
+#      end
+#      elapsed_time = ((Time.now - start).to_f * 1000).round(1)
+#      return result
+#    end
+#    alias_method :parse_response, :parse_response_with_profiling
+#    puts "SPARQL::Client.parse_response instrumented for profiling"
+
+    alias_method :query_without_profiling, :query
+    def query_with_profiling(query, options={})
+      current = ::Rack::MiniProfiler.current
+      return query_without_profiling(query, options) unless current && current.measure
+
+      start = Time.now
+      @op = :query
+      resultset = nil
+      Rack::MiniProfiler.counter("sparql") do
+        resultset = response(query,options)
+      end
+      elapse_query = Time.now - start
+      size_kb = resultset.nil? ? 0 : (resultset.length / (1024.0))
+      start_parsing = Time.now
+      result = nil
+      Rack::MiniProfiler.counter("parse") do
+        result = parse_response(resultset, options)
+      end
+      elapse_parsing = Time.now - start_parsing
+
+      Rack::MiniProfiler.record_sparql(query, elapse_query,size_kb,elapse_parsing)
+      return result
+    end
+    alias_method :query, :query_with_profiling
+    puts "SPARQL::Client.query instrumented for profiling"
+  end
+
+  class Goo::Base::Where
+    alias_method :process_query_without_profiling, :process_query
+    def process_query_with_profiling()
+      current = ::Rack::MiniProfiler.current
+      return process_query_without_profiling() unless current && current.measure
+      result = nil
+      Rack::MiniProfiler.step("#{@klass}") do
+        result = process_query_without_profiling()
+      end
+      return result
+    end
+    alias_method :process_query, :process_query_with_profiling
+    puts "Goo::Base::Where.process_query instrumented for profiling"
+  end
+end

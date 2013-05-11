@@ -146,6 +146,7 @@ var MiniProfiler = (function () {
     };
 
     var buttonShow = function (json) {
+        console.log(json);
         var result = renderTemplate(json);
 
         if (controls)

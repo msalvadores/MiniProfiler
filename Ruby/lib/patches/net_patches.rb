@@ -1,4 +1,4 @@
-if (defined?(Net) && defined?(Net::HTTP))
+if false && (defined?(Net) && defined?(Net::HTTP))
 
   Net::HTTP.class_eval do
     def request_with_mini_profiler(*args, &block)

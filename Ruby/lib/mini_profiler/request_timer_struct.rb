@@ -27,7 +27,10 @@ module Rack
               "HasDuplicateSqlTimings"=> false,
               "TrivialDurationThresholdMilliseconds" => 2,
               "SqlTimings" => [],
+              "SparqlTimings" => [],
+              "HasSparqlTimings" => false,
               "SqlTimingsDurationMilliseconds"=> 0,
+              "SparqlTimingsDurationMilliseconds"=> 0,
               "IsTrivial"=> false,
               "IsRoot"=> false,
               "Depth"=> parent ? parent.depth + 1 : 0,
@@ -78,6 +81,15 @@ module Rack
         self['HasSqlTimings'] = true
         self['SqlTimingsDurationMilliseconds'] += elapsed_ms
         page['DurationMillisecondsInSql'] += elapsed_ms        
+        timer
+      end
+
+      def add_sparql(query, elapsed_ms,size_response, parse_ms, page, skip_backtrace = false, full_backtrace = false)
+        timer = SparqlTimerStruct.new(query, elapsed_ms,size_response,parse_ms, page, self , skip_backtrace, full_backtrace)
+        timer['ParentTimingId'] = self['Id']
+        self['SparqlTimings'].push(timer)
+        self['HasSparqlTimings'] = true
+        self['SparqlTimingsDurationMilliseconds'] += elapsed_ms
         timer
       end
 

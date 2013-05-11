@@ -8,6 +8,14 @@ module Rack
         c.current_timer.add_sql(query, elapsed_ms, c.page_struct, c.skip_backtrace, c.full_backtrace) if (c && c.current_timer)
       end
 
+      def record_sparql(query, elapsed_ms, size_response_kb, elapse_parse)
+        c = current
+        return unless c
+        c.current_timer.add_sparql(query, elapsed_ms, size_response_kb, elapse_parse, c.page_struct, c.skip_backtrace, c.full_backtrace) if (c && c.current_timer)
+      end
+
+
+
       def start_step(name)
         if current
           parent_timer = current.current_timer

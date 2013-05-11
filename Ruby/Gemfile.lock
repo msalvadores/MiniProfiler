@@ -1,5 +1,5 @@
 PATH
-  remote: /home/sam/Source/MiniProfiler
+  remote: /Users/manuelso/work/stanford/workspace/MiniProfiler
   specs:
     rack-mini-profiler (0.1.26)
       rack (>= 1.1.3)
